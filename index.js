@@ -15,52 +15,102 @@ app.use(express.static('public'));
 let myMovies = [
     {
         title: 'The Breakfast Club',
-        director: 'John Hughes',
+        director: {
+            name: 'John Hughes'
+        },
+        genre: {
+            name: 'comedy'
+        },
         year: '1985'
     },
     {
         title: 'Valley Girl',
-        director: 'Martha Coolidge',
+        director: {
+            name: 'Martha Coolidge',
+    },
+        genre: {
+            name: 'comedy'
+        },
         year: '1983'
     },
     {
         title: 'Sixteen Candles',
-        director: 'John Hughes',
+        director: {
+            name: 'John Hughes'
+        },
+        genre: {
+            name: 'comedy'
+        },
         year: '1984'
     },
     {
         title: 'Pretty In Pink',
-        director: 'Howard Deutch',
+        director: {
+            name: 'Howard Deutch'
+        },
+        genre: {
+            name: 'drama'
+        },
         year: '1986'
     },
     {
         title: 'Ferris Bueller\'s Day Off',
-        director: 'John Hughes',
+        director: {
+            name: 'John Hughes'
+        },
+        genre: {
+            name: 'comedy'
+        },
         year: '1986'
     },
     {
         title: 'St. Elmo\'s Fire',
-        director: 'Joel Schumacher',
+        director: {
+            name: 'Joel Schumacher'
+        },
+        genre: {
+            name: 'drama'
+        },
         year: '1985'
     },
     {
         title: 'Better Off Dead',
-        director: 'Savage Steve Holland',
+        director: {
+            name: 'Savage Steve Holland'
+        },
+        genre: {
+            name: 'comedy'
+        },
         year: '1985'
     },
     {
         title: 'Fast Times At Ridgemont High',
-        director: 'Amy Heckerling',
+        director: {
+            name: 'Amy Heckerling'
+        },
+        genre: {
+            name: 'comedy'
+        },
         year: '1982'
     },
     {
         title: 'The Lost Boys',
-        director: 'Joel Schumacher',
+        director: {
+            name: 'Joel Schumacher'
+        },
+        genre: {
+            name: 'horror'
+        },
         year: '1987'
     },
     {
         title: 'WarGames',
-        director: 'John Badham',
+        director: {
+            name: 'John Badham'
+        },
+        genre: {
+            name: 'thriller'
+        },
         year: '1983'
     }
 ];
