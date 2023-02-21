@@ -34,7 +34,21 @@ const passport = require('passport');
 require('./passport');
 
 const cors = require('cors');
-app.use(cors());
+//app.use(cors());
+
+let allowedOrigins = ['http://localhost:8080', 'http://localhost:1234', 'http://testsite.com'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      let message = 'The CORS policy for this application does not allow access from origin ' + origin;
+      return callback(new Error(message), false);
+    }
+    return callback(null, true);
+  }
+}));
+
 
 const { check, validationResult } = require('express-validator');
 
@@ -360,7 +374,7 @@ app.use((err, req, res, next) => {
 });
 
 //listen for requests
-const port = process.env.PORT || 1234;
+const port = process.env.PORT || 8080;
 app.listen(port, '0.0.0.0', () => {
   console.log('Listening on Port ' + port);
 });
