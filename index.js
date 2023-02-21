@@ -4,6 +4,8 @@ const Models = require('./models.js');
 const Movies = Models.Movie;
 const Users = Models.User;
 
+const { check, validationResult } = require('express-validator');
+
 //Updated URI
 mongoose.connect(process.env.CONNECTION_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -29,15 +31,18 @@ app.use(bodyParser.json());
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
+const cors = require('cors');
+app.use(cors());
+
 let auth = require('./auth')(app);
 const passport = require('passport');
 require('./passport');
 
-const cors = require('cors');
-app.use(cors());
+//const cors = require('cors');
+//app.use(cors());
 
 
-const { check, validationResult } = require('express-validator');
+//const { check, validationResult } = require('express-validator');
 
 
 let users = [
