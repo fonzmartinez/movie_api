@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: index.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: index.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const mongoose = require('mongoose');
+const Models = require('./models.js');
+
+const Movies = Models.Movie;
+const Users = Models.User;
+
+const { check, validationResult } = require('express-validator');
+
+//Updated URI
+mongoose.connect(process.env.CONNECTION_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
+
+const express = require('express');
+const morgan = require('morgan');
+
+const fs = require('fs');
+const path = require('path');
+const bodyParser = require('body-parser');
+const uuid = require('uuid');
+
+
+const app = express();
+
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'log.txt'), { flags: 'a' })
+
+app.use(morgan('combined', { stream: accessLogStream }));
+
+app.use(express.static('public'));
+
+app.use(bodyParser.json());
+
+app.use(bodyParser.urlencoded({ extended: true }));
+
+const cors = require('cors');
+app.use(cors());
+
+let auth = require('./auth')(app);
+const passport = require('passport');
+require('./passport');
+
+//const cors = require('cors');
+//app.use(cors()); 
+
+
+//const { check, validationResult } = require('express-validator');
+
+
+let users = [
+  {
+    id: 1,
+    name: 'John',
+    favoriteMovies: []
+  },
+  {
+    id: 2,
+    name: 'Claire',
+    favoriteMovies: ['Sixteen Candles']
+  },
+]
+
+let myMovies = [
+  {
+    title: 'The Breakfast Club',
+    director: {
+      name: 'John Hughes'
+    },
+    genre: {
+      name: 'comedy'
+    },
+    year: '1985'
+  },
+  {
+    title: 'Valley Girl',
+    director: {
+      name: 'Martha Coolidge',
+    },
+    genre: {
+      name: 'comedy'
+    },
+    year: '1983'
+  },
+  {
+    title: 'Sixteen Candles',
+    director: {
+      name: 'John Hughes'
+    },
+    genre: {
+      name: 'comedy'
+    },
+    year: '1984'
+  },
+  {
+    title: 'Pretty In Pink',
+    director: {
+      name: 'Howard Deutch'
+    },
+    genre: {
+      name: 'drama'
+    },
+    year: '1986'
+  },
+  {
+    title: 'Ferris Bueller\'s Day Off',
+    director: {
+      name: 'John Hughes'
+    },
+    genre: {
+      name: 'comedy'
+    },
+    year: '1986'
+  },
+  {
+    title: 'St. Elmo\'s Fire',
+    director: {
+      name: 'Joel Schumacher'
+    },
+    genre: {
+      name: 'drama'
+    },
+    year: '1985'
+  },
+  {
+    title: 'Better Off Dead',
+    director: {
+      name: 'Savage Steve Holland'
+    },
+    genre: {
+      name: 'comedy'
+    },
+    year: '1985'
+  },
+  {
+    title: 'Fast Times At Ridgemont High',
+    director: {
+      name: 'Amy Heckerling'
+    },
+    genre: {
+      name: 'comedy'
+    },
+    year: '1982'
+  },
+  {
+    title: 'The Lost Boys',
+    director: {
+      name: 'Joel Schumacher'
+    },
+    genre: {
+      name: 'horror'
+    },
+    year: '1987'
+  },
+  {
+    title: 'WarGames',
+    director: {
+      name: 'John Badham'
+    },
+    genre: {
+      name: 'thriller'
+    },
+    year: '1983'
+  },
+];
+
+
+/**
+ * GET welcome message from '/' endpoint
+ * @returns welcome message
+ */
+app.get('/', (req, res) => {
+  res.send('Welcome to Totally Rad Flix!');
+});
+
+/**
+ * GET the API documentation at the "/documentation" endpoint
+ * @name documentation
+ * @returns the contents of documentation.html
+ */
+app.get('/documentation', (req, res) => {
+  res.sendFile('public/documentation.html', { root: __dirname });
+});
+
+//Requests for Mongoose
+
+/**
+ * GET list of all movies at the "/movies" endpoint
+ * @name movies
+ * @returns array of movie objects
+ * @requires passport
+ */
+app.get('/movies', passport.authenticate('jwt', { session: false }), (req, res) => {
+  Movies.find()
+    .then((movies) => {
+      res.status(201).json(movies);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
+});
+
+
+/**
+ * GET movie by title at the "/movies/(Title)" endpoint
+ * @name movies
+ * @param genre
+ * @returns movie object
+ * @requires passport
+ */
+app.get('/movies/:title', passport.authenticate('jwt', { session: false }), (req, res) => {
+  Movies.findOne({ Title: req.params.title })
+    .then((movies) => {
+      res.status(201).json(movies);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
+});
+
+/**
+ * GET genre by name at the "/movies/(Genre)/(Name)" endpoint
+ * @name genre
+ * @param genreName
+ * @returns genre object
+ * @requires passport
+ */
+app.get('/movies/genre/:genreName', passport.authenticate('jwt', { session: false }), (req, res) => {
+  Movies.findOne({ 'Genre.Name': req.params.genreName })
+    .then((movies) => {
+      res.status(201).json(movies.Genre);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
+});
+
+/**
+ * GET director by name at the "/movies/(Director)/(Name)" endpoint
+ * @name director
+ * @param directorName 
+ * @returns director object
+ * @requires passport
+ */
+app.get('/movies/director/:directorName', passport.authenticate('jwt', { session: false }), (req, res) => {
+  Movies.findOne({ 'Director.Name': req.params.directorName })
+    .then((movies) => {
+      res.status(201).json(movies.Director);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
+});
+
+/**
+ * GET list of all users at the "/users" endpoint
+ * @name users
+ * @returns array of user objects
+ */
+app.get('/users', passport.authenticate('jwt', { session: false }), (req, res) => {
+  Users.find()
+    .then((users) => {
+      res.status(201).json(users);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
+});
+
+/**
+ * POST create new users
+ * @name registerUser
+ * @param Username 
+ * @param Password
+ * @param Email 
+ * @param Birthday 
+ */
+app.post('/users',
+  [
+    check('Username', 'Username is required to contain a minimum of 5 characters').isLength({ min: 5 }),
+    check('Username', 'Username contains non alphanumeric characters - not allowed.').isAlphanumeric(),
+    check('Password', 'Password is required').not().isEmpty(),
+    check('Email', 'Email does not appear to be valid').isEmail()
+  ], (req, res) => {
+
+    let errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+
+    let hashedPassword = Users.hashPassword(req.body.Password);
+    Users.findOne({ Username: req.body.Username })
+      .then((user) => {
+        if (user) {
+          return res.status(400).send(req.body.Username + 'already exists');
+        } else {
+          Users
+            .create({
+              Username: req.body.Username,
+              Password: hashedPassword,
+              Email: req.body.Email,
+              Birthday: req.body.Birthday
+            })
+            .then((user) => { res.status(201).json(user) })
+            .catch((error) => {
+              console.error(error);
+              res.status(500).send('Error: ' + error);
+            })
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        res.status(500).send('Error: ' + error);
+      });
+  });
+
+/**
+ * PUT update user info
+ * @name updateUser
+ * @param Username 
+ * @param Password 
+ * @param Email 
+ * @param Birthday 
+ * @requires passport
+ */
+app.put('/users/:Username',
+  [
+    check('Username', 'Username is required').isLength({ min: 5 }),
+    check('Username', 'Username contains non alphanumeric characters - not allowed.').isAlphanumeric(),
+    check('Password', 'Password is required').not().isEmpty(),
+    check('Email', 'Email does not appear to be valid').isEmail()
+  ], passport.authenticate('jwt', { session: false }), (req, res) => {
+
+    let errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+
+    let hashedPassword = Users.hashPassword(req.body.Password);
+    Users.findOneAndUpdate({ Username: req.params.Username }, {
+      $set:
+      {
+        Username: req.body.Username,
+        Password: hashedPassword,
+        Email: req.body.Email,
+        Birthday: req.body.Birthday
+      }
+    },
+      { new: true },
+      (err, updatedUser) => {
+        if (err) {
+          console.error(err);
+          res.status(500).send('Error: ' + err);
+        } else {
+          res.json(updatedUser);
+        }
+      });
+  });
+
+/**
+ * POST new movie title to favorites
+ * @name addFavoriteMovie
+ * @param Username 
+ * @param MovieID 
+ * @requires passport
+ */
+app.post('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), (req, res) => {
+  Users.findOneAndUpdate({ Username: req.params.Username }, {
+    $push: { FavoriteMovies: req.params.MovieID }
+  },
+    { new: true },
+    (err, updatedUser) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send('Error: ' + err);
+      } else {
+        res.json(updatedUser);
+      }
+    });
+});
+
+/**
+ * DELETE movie title from favorites
+ * @name removeFavoriteMovie
+ * @param Username
+ * @param movieID 
+ * @requires passport
+ */
+app.delete('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), (req, res) => {
+  Users.findOneAndUpdate({ Username: req.params.Username }, {
+    $pull: { FavoriteMovies: req.params.MovieID }
+  },
+    { new: true },
+    (err, updatedUser) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send('Error: ' + err);
+      } else {
+        res.json(updatedUser);
+      }
+    });
+});
+
+
+/**
+ * DELETE existing user
+ * @name removeUser
+ * @param ID
+ * @requires passport
+ */
+app.delete('/users/:Username', passport.authenticate('jwt', { session: false }), (req, res) => {
+  Users.findOneAndRemove({ Username: req.params.Username })
+    .then((user) => {
+      if (!user) {
+        res.status(400).send(req.params.Username + ' was deleted');
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
+});
+
+
+//error handling
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something went wrong!');
+});
+
+//listen for requests
+const port = process.env.PORT || 8080;
+app.listen(port, '0.0.0.0', () => {
+  console.log('Listening on Port ' + port);
+});</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addFavoriteMovie">addFavoriteMovie</a></li><li><a href="global.html#director">director</a></li><li><a href="global.html#documentation">documentation</a></li><li><a href="global.html#genre">genre</a></li><li><a href="global.html#movies">movies</a></li><li><a href="global.html#registerUser">registerUser</a></li><li><a href="global.html#removeFavoriteMovie">removeFavoriteMovie</a></li><li><a href="global.html#removeUser">removeUser</a></li><li><a href="global.html#updateUser">updateUser</a></li><li><a href="global.html#users">users</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Tue Jun 20 2023 14:21:48 GMT-0500 (Central Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
